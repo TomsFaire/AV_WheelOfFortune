@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wheel of Fortune — 16:9</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #0b1020; color: #e2e8f0; }
+    body { display: grid; place-items: center; overflow: hidden; }
+
+    /* 16:9 stage that scales to screen */
+    .stage-wrap { width: 100vw; height: 100vh; display: grid; place-items: center; }
+    .stage {
+      aspect-ratio: 16 / 9;
+      width: min(100vw, 177.78vh);
+      height: auto;
+      background: linear-gradient(135deg, #2c1810, #1a0f0a);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      padding: 12px 18px;
+      background: linear-gradient(180deg, #d4af37, #b8860b);
+      font: 600 18px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      letter-spacing: .4px;
+      display: flex; justify-content: space-between; align-items: center;
+      color: #1a0f0a;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    header .hint { 
+      color: #2c1810; 
+      font-weight: 500; 
+      transition: opacity 0.5s ease-out, height 0.5s ease-out;
+    }
+
+    .wheel-ct { position: relative; display: grid; place-items: center; }
+    canvas#wheelcanvas { width: 100%; height: 100%; max-height: 100%; display: block; }
+
+    .puzzle {
+      background: linear-gradient(135deg, #f4e4bc, #e6d3a3);
+      display: grid; grid-template-rows: auto auto 1fr auto auto; gap: 12px; padding: 24px;
+      border-left: 2px solid #d4af37;
+      min-width: 0; /* Allow shrinking */
+      overflow: hidden; /* Prevent content from going outside */
+    }
+    
+    .wheel-value {
+      text-align: center;
+      font-size: 48px;
+      font-weight: 900;
+      color: #d4af37;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 20px rgba(212, 175, 55, 0.6);
+      margin: 0;
+    }
+    
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .player-score {
+      background: rgba(212, 175, 55, 0.15);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      border: 2px solid rgba(212, 175, 55, 0.3);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .player-score.active {
+      background: rgba(212, 175, 55, 0.25);
+      border-color: #d4af37;
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+    }
+    
+    .player-name {
+      font-size: 12px;
+      color: #2c1810;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    
+    .player-points {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a0f0a;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+    }
+    .phrase { 
+      align-self: center; 
+      justify-self: center; 
+      display: grid; 
+      grid-auto-flow: row; 
+      gap: 14px; 
+      max-width: 100%;
+      overflow-wrap: break-word;
+    }
+    .phrase-row { 
+      display: flex; 
+      gap: 6px; 
+      justify-content: center; 
+      align-items: center;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+    .tile {
+      flex: 0 0 auto;
+      width: min(52px, 4vw);
+      height: min(70px, 5.5vw);
+      border-radius: 8px;
+      background: linear-gradient(135deg, #2c1810, #1a0f0a);
+      color: #d4af37;
+      box-shadow: inset 0 0 0 3px #d4af37, 0 2px 8px rgba(0,0,0,0.3);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: min(24px, 2vw);
+      text-transform: uppercase;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .tile.space { 
+      background: transparent; 
+      box-shadow: none; 
+      width: min(22px, 2vw);
+      height: min(70px, 5.5vw);
+    }
+
+    .alpha { display: grid; grid-template-columns: repeat(13, 1fr); gap: 6px; }
+    .alpha .key {
+      padding: 6px 0; text-align: center; border-radius: 8px;
+      background: linear-gradient(135deg, #2c1810, #1a0f0a); 
+      color: #d4af37; 
+      font: 600 14px ui-sans-serif, system-ui;
+      box-shadow: inset 0 0 0 2px #d4af37, 0 2px 4px rgba(0,0,0,0.3);
+      user-select: none; cursor: pointer;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .alpha .key.hit { 
+      color: #4ade80; 
+      background: linear-gradient(135deg, #1a3d1a, #0f2a0f);
+      box-shadow: inset 0 0 0 2px #4ade80, 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .alpha .key.miss { 
+      color: #f87171; 
+      background: linear-gradient(135deg, #3d1a1a, #2a0f0f);
+      box-shadow: inset 0 0 0 2px #f87171, 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    footer {
+      grid-column: 1 / -1;
+      padding: 10px 16px; display: flex; justify-content: space-between;
+      color: #2c1810; font: 500 14px system-ui, -apple-system, Segoe UI, Roboto;
+      background: linear-gradient(180deg, #d4af37, #b8860b); 
+      border-top: 2px solid #d4af37;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+    }
+    .status b { color: #1a0f0a; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="stage-wrap">
+    <div class="stage">
+      <header>
+        <div>Wheel of Fortune — Live</div>
+        <div class="hint">Spin (click / space). After it stops: type a letter. Toggle puzzle editor with <b>Ctrl+Shift+P</b>.</div>
+      </header>
+
+      <section class="wheel-ct">
+        <canvas id="wheelcanvas"></canvas>
+      </section>
+
+        <aside class="puzzle">
+          <div class="wheel-value" id="wheel-value">—</div>
+          
+          <div class="scores">
+            <div class="player-score active" id="player-1">
+              <div class="player-name">Player 1</div>
+              <div class="player-points">0</div>
+            </div>
+            <div class="player-score" id="player-2">
+              <div class="player-name">Player 2</div>
+              <div class="player-points">0</div>
+            </div>
+            <div class="player-score" id="player-3">
+              <div class="player-name">Player 3</div>
+              <div class="player-points">0</div>
+            </div>
+            <div class="player-score" id="player-4">
+              <div class="player-name">Player 4</div>
+              <div class="player-points">0</div>
+            </div>
+          </div>
+          
+          <div class="phrase" id="phrase"></div>
+          <div class="alpha" id="alpha"></div>
+          <div class="note" id="note" style="text-align:center; color:#94a3b8;"></div>
+        </aside>
+
+      <footer>
+        <div class="status">Status: <b id="status">Ready — spin to begin</b></div>
+        <div>letters guessed: <b id="count">0</b></div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+     // ---------- Wheel config ----------
+     const SLICE_COLORS = ["#d4af37","#dc2626","#2563eb","#16a34a","#7c3aed","#ea580c"];
+    const DEFAULT_ITEMS = ["300","500","600","700","800","900","2500","BANKRUPT","LOSE A TURN","FREE PLAY","WILD","MYSTERY","350","450","650","700","800","900"];
+    const ITEMS = DEFAULT_ITEMS.slice();
+
+    const TAU = Math.PI * 2;
+    const pointerAngle = -Math.PI/2; // top pointer (12 o'clock)
+    const SPIN_PHASE_MS = 2000;      // constant speed
+    const DECEL_MS = 3000;           // ease-out
+    const SPIN_SPEED = TAU * 2;      // 2 rev/sec during constant phase
+
+    const canvas = document.getElementById('wheelcanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Size backing buffer to the canvas element's grid cell (NOT full window)
+    function resizeCanvas(){
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width  = Math.floor(rect.width  * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+    addEventListener('resize', resizeCanvas);
+
+    // ---------- Wheel state ----------
+    let angle = 0;                 // current rotation
+    let phase = 'idle';            // 'idle' | 'spin' | 'decel'
+    let spinEnd = 0;               // timestamps
+    let decelStartAngle = 0;
+    let decelTargetAngle = 0;
+
+    function currentIndex(a = angle){
+      const step = TAU / ITEMS.length;
+      const raw  = ((pointerAngle - a) % TAU + TAU) % TAU; // [0, TAU)
+      let idx = Math.floor(raw / step) % ITEMS.length;     // slice whose range contains the pointer
+      if (idx < 0) idx += ITEMS.length;
+      return idx;
+    }
+
+    function drawWheel(cx,cy,r){
+      const step = TAU / ITEMS.length;
+      const fontSize = Math.max(16, r * 0.07);
+      ctx.font = `${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif`;
+
+      for (let i=0;i<ITEMS.length;i++){
+        const start = angle + i*step, end = start + step;
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,end); ctx.closePath();
+        ctx.fillStyle = SLICE_COLORS[i % SLICE_COLORS.length]; ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.stroke();
+
+        // label (radial, uniform size)
+        const mid = start + step/2;
+        const tx = cx + Math.cos(mid) * (r * 0.6);
+        const ty = cy + Math.sin(mid) * (r * 0.6);
+        ctx.save(); ctx.translate(tx, ty); ctx.rotate(mid);
+        ctx.fillStyle = '#0b1020'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(String(ITEMS[i]), 0, 0);
+        ctx.restore();
+      }
+
+      // center cap
+      ctx.beginPath(); ctx.arc(cx,cy,r*0.1,0,TAU); ctx.fillStyle='#0b1020'; ctx.fill();
+
+      // TOP pointer (white triangle)
+      const pW = Math.max(18, r * 0.06), pH = Math.max(28, r * 0.10);
+      ctx.save(); ctx.translate(cx,cy);
+      ctx.beginPath();
+      ctx.moveTo(0, -r - pH); ctx.lineTo(-pW/2, -r); ctx.lineTo(pW/2, -r); ctx.closePath();
+      ctx.fillStyle = '#f8fafc'; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#111827'; ctx.stroke();
+      ctx.restore();
+
+       // Wheel value is now displayed above the puzzle area
+    }
+
+    function draw(){
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const r = Math.min(w,h) * 0.42, cx = w/2, cy = h/2;
+      const g = ctx.createRadialGradient(cx,cy,r*0.1, cx,cy, Math.max(w,h)*0.6);
+      g.addColorStop(0, '#0b1020'); g.addColorStop(1, '#030712');
+      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+      drawWheel(cx,cy,r);
+    }
+
+    function requestSpin(){
+      if (phase !== 'idle') return;    // (removed undefined gamePhase check)
+      const now = performance.now();
+      spinEnd = now + SPIN_PHASE_MS;
+      phase = 'spin';
+      setStatus('Spinning…'); setNote('');
+    }
+    addEventListener('pointerdown', requestSpin);
+    addEventListener('keydown', e => {
+      if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); requestSpin(); }
+    });
+
+    let last = 0;
+    function step(ts){
+      if (!last) last = ts;
+      const dt = (ts - last)/1000; last = ts;
+
+      if (phase === 'spin'){
+        angle += SPIN_SPEED * dt;
+        if (ts >= spinEnd){
+          phase = 'decel';
+          // compute a single final target to interpolate to (no snap-back)
+          const start = angle;
+          const remaining = SPIN_SPEED * ((DECEL_MS/1000) / 4); // integral of (1-t)^3
+          const provisional = start + remaining;
+          const stepAng = TAU / ITEMS.length;
+          const idxFinal = currentIndex(provisional + 1e-6);
+          let target = pointerAngle - (idxFinal + 0.5) * stepAng;
+          while (target <= start) target += TAU; // ensure monotonic forward motion
+          decelStartAngle = start;
+          decelTargetAngle = target;
+        }
+        draw();
+      } else if (phase === 'decel'){
+        const t = Math.min(1, (ts - spinEnd) / DECEL_MS);
+        const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
+        angle = decelStartAngle + (decelTargetAngle - decelStartAngle) * ease;
+         if (t >= 1){
+           angle = decelTargetAngle;
+           phase = 'idle';
+           
+           // Get the wheel result
+           const selectedItem = ITEMS[currentIndex()];
+           currentWheelValue = parseInt(selectedItem) || 0;
+           setWheelValue(selectedItem);
+           
+           // Handle special wheel results
+           if (selectedItem === 'BANKRUPT') {
+             players[currentPlayer].points = 0;
+             updatePlayerScores();
+             setStatus('💸 BANKRUPT! Points lost — next player');
+             nextPlayer();
+           } else if (selectedItem === 'LOSE A TURN') {
+             setStatus('⏭️ LOSE A TURN! Next player');
+             nextPlayer();
+           } else if (selectedItem === 'FREE PLAY' || selectedItem === 'WILD' || selectedItem === 'MYSTERY') {
+             awaitingGuess = true;
+             setStatus('🎁 FREE PLAY! Guess any letter');
+           } else if (currentWheelValue > 0) {
+             awaitingGuess = true;
+             setStatus(`💰 Landed on ${selectedItem}! Guess a letter`);
+           } else {
+             setStatus(`Landed on ${selectedItem} — spin again`);
+           }
+         }
+        draw();
+      }
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+
+     // ---------- Puzzle / letters ----------
+     const phraseEl = document.getElementById('phrase');
+     const alphaEl  = document.getElementById('alpha');
+     const statusEl = document.getElementById('status');
+     const countEl  = document.getElementById('count');
+     const noteEl   = document.getElementById('note');
+     const wheelValueEl = document.getElementById('wheel-value');
+
+     function setStatus(s){ statusEl.textContent = s; }
+     function setNote(s){ noteEl.textContent = s; }
+     function setWheelValue(value){ wheelValueEl.textContent = value; }
+
+     let puzzle   = 'FAIRE MARKET';
+     let revealed = new Set();
+     let guessed  = new Set();
+     let awaitingGuess = false;
+     
+     // Player management
+     let players = [
+       { name: 'Player 1', points: 0, active: true },
+       { name: 'Player 2', points: 0, active: false },
+       { name: 'Player 3', points: 0, active: false },
+       { name: 'Player 4', points: 0, active: false }
+     ];
+     let currentPlayer = 0;
+     let currentWheelValue = 0;
+
+    function layoutPhrase(){
+      phraseEl.innerHTML = '';
+      
+      // Split by words and create smart word wrapping
+      const words = puzzle.split(' ');
+      const rows = [];
+      let currentRow = [];
+      let currentRowLength = 0;
+      
+      // Calculate approximate tile width (including gap)
+      const tileWidth = 52 + 6; // tile width + gap
+      const spaceWidth = 22 + 6; // space width + gap
+      const maxRowWidth = phraseEl.offsetWidth || 400; // fallback width
+      
+      words.forEach((word, wordIndex) => {
+        const wordLength = word.length * tileWidth;
+        const needsSpace = wordIndex > 0;
+        const spaceNeeded = needsSpace ? spaceWidth : 0;
+        
+        // Check if this word fits on current row
+        if (currentRowLength + spaceNeeded + wordLength <= maxRowWidth) {
+          // Add space if needed
+          if (needsSpace) {
+            currentRow.push(' ');
+            currentRowLength += spaceWidth;
+          }
+          // Add word
+          currentRow.push(word);
+          currentRowLength += wordLength;
+        } else {
+          // Start new row
+          if (currentRow.length > 0) {
+            rows.push([...currentRow]);
+          }
+          currentRow = [word];
+          currentRowLength = wordLength;
+        }
+      });
+      
+      // Add the last row
+      if (currentRow.length > 0) {
+        rows.push(currentRow);
+      }
+      
+      // Render the rows
+      rows.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'phrase-row';
+        
+        row.forEach(item => {
+          if (item === ' ') {
+            const spaceTile = document.createElement('div');
+            spaceTile.className = 'tile space';
+            spaceTile.textContent = '';
+            rowDiv.appendChild(spaceTile);
+          } else {
+            // It's a word
+            for (let i = 0; i < item.length; i++) {
+              const tile = document.createElement('div');
+              tile.className = 'tile';
+              tile.textContent = revealed.has(item[i]) ? item[i] : '';
+              tile.dataset.ch = item[i];
+              rowDiv.appendChild(tile);
+            }
+          }
+        });
+        
+        phraseEl.appendChild(rowDiv);
+      });
+    }
+
+    function layoutAlpha(){
+      alphaEl.innerHTML = '';
+      for (const c of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'){
+        const k = document.createElement('div'); k.className='key'; k.id='key-'+c; k.textContent=c;
+        k.addEventListener('click', ()=>applyGuess(c));
+        alphaEl.appendChild(k);
+      }
+    }
+
+     function updatePlayerScores() {
+       players.forEach((player, index) => {
+         const playerEl = document.getElementById(`player-${index + 1}`);
+         const nameEl = playerEl.querySelector('.player-name');
+         const pointsEl = playerEl.querySelector('.player-points');
+         
+         nameEl.textContent = player.name;
+         pointsEl.textContent = player.points;
+         
+         if (player.active) {
+           playerEl.classList.add('active');
+         } else {
+           playerEl.classList.remove('active');
+         }
+       });
+     }
+     
+     function nextPlayer() {
+       players[currentPlayer].active = false;
+       currentPlayer = (currentPlayer + 1) % 4;
+       players[currentPlayer].active = true;
+       updatePlayerScores();
+     }
+     
+     function addPoints(points) {
+       players[currentPlayer].points += points;
+       updatePlayerScores();
+     }
+
+     function applyGuess(letter){
+       if (!awaitingGuess) { setNote('Spin first, then guess a letter.'); return; }
+       if (guessed.has(letter)) { setNote('You already guessed '+letter+'.'); return; }
+       guessed.add(letter); countEl.textContent = guessed.size;
+
+       const hits = (puzzle.match(new RegExp(letter, 'g')) || []).length;
+       document.getElementById('key-'+letter).classList.add(hits ? 'hit' : 'miss');
+
+       if (hits){
+         revealed.add(letter);
+         document.querySelectorAll('.tile').forEach(el => { if (el.dataset.ch === letter) el.textContent = letter; });
+         
+         // Award points
+         const points = currentWheelValue * hits;
+         addPoints(points);
+         
+         setStatus(`✔ ${letter} found (${hits}) — +${points} points — spin again`);
+       } else {
+         setStatus(`✖ ${letter} not in phrase — next player`);
+         nextPlayer();
+       }
+       awaitingGuess = false;
+     }
+
+    // Type a letter on the keyboard
+    addEventListener('keydown', e=>{
+      const k = e.key.toUpperCase();
+      if (/^[A-Z]$/.test(k)) applyGuess(k);
+    });
+
+     // Secret editor: Ctrl+Shift+P
+     addEventListener('keydown', e=>{
+       if (e.ctrlKey && e.shiftKey && (e.code==='KeyP' || e.key==='P')){
+         e.preventDefault();
+         const val = prompt('Enter new puzzle phrase:', puzzle);
+         if (val && val.trim()){
+           puzzle = val.toUpperCase().replace(/[^A-Z ]/g,'');
+           revealed.clear(); guessed.clear(); countEl.textContent='0';
+           layoutPhrase(); layoutAlpha();
+           setStatus('Puzzle set — spin to begin');
+           
+           // Hide instructions after puzzle is set
+           const hintEl = document.querySelector('.hint');
+           if (hintEl) {
+             hintEl.style.opacity = '0';
+             setTimeout(() => {
+               hintEl.style.display = 'none';
+             }, 500); // Wait for transition to complete
+           }
+         }
+       }
+     });
+
+     // Init
+     layoutPhrase(); layoutAlpha();
+     updatePlayerScores();
+     resizeCanvas(); draw();
+    requestAnimationFrame(step);
+  </script>
+</body>
+</html>
