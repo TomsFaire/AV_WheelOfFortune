@@ -512,14 +512,20 @@
         angle += SPIN_SPEED * dt;
         if (ts >= spinEnd){
           phase = 'decel';
-          // compute a single final target to interpolate to (no snap-back)
+          // Randomly select a slice for the final result
           const start = angle;
-          const remaining = SPIN_SPEED * ((DECEL_MS/1000) / 4); // integral of (1-t)^3
-          const provisional = start + remaining;
+          const randomSlice = Math.floor(Math.random() * ITEMS.length);
           const stepAng = TAU / ITEMS.length;
-          const idxFinal = currentIndex(provisional + 1e-6);
-          let target = pointerAngle - (idxFinal + 0.5) * stepAng;
-          while (target <= start) target += TAU; // ensure monotonic forward motion
+          
+          // Calculate target angle to land on the randomly selected slice
+          // Add multiple full rotations for dramatic effect
+          const extraRotations = 3 + Math.random() * 2; // 3-5 extra rotations
+          let target = pointerAngle - (randomSlice + 0.5) * stepAng;
+          target += extraRotations * TAU; // Add extra rotations
+          
+          // Ensure monotonic forward motion
+          while (target <= start) target += TAU;
+          
           decelStartAngle = start;
           decelTargetAngle = target;
         }
