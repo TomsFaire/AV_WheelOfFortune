@@ -348,6 +348,9 @@
 
     const canvas = document.getElementById('wheelcanvas');
     const ctx = canvas.getContext('2d');
+    
+    // Get modal reference early for spacebar check
+    const puzzleModal = document.getElementById('puzzle-modal');
 
     // Size backing buffer to the canvas element's grid cell (NOT full window)
     function resizeCanvas(){
@@ -430,7 +433,14 @@
     
     // Only spacebar to spin (removed click functionality)
     addEventListener('keydown', e => {
-      if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); requestSpin(); }
+      if (e.code === 'Space' || e.key === ' ') { 
+        // Don't spin if modal is open
+        if (puzzleModal.style.display === 'flex') {
+          return; // Let spacebar work normally in the input field
+        }
+        e.preventDefault(); 
+        requestSpin(); 
+      }
     });
 
     let last = 0;
@@ -659,7 +669,6 @@
     });
 
      // Modal functionality
-     const puzzleModal = document.getElementById('puzzle-modal');
      const puzzleInput = document.getElementById('puzzle-input');
      const savePuzzleBtn = document.getElementById('save-puzzle');
      const cancelPuzzleBtn = document.getElementById('cancel-puzzle');
