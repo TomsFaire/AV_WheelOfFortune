@@ -1056,8 +1056,13 @@
      // Init
      layoutPhrase(); layoutAlpha();
      updatePlayerScores();
-     resizeCanvas(); draw();
-    requestAnimationFrame(step);
+     
+     // Ensure canvas gets proper dimensions after DOM is ready
+     setTimeout(() => {
+       resizeCanvas(); 
+       draw();
+       requestAnimationFrame(step);
+     }, 100);
   </script>
 </body>
 </html>
