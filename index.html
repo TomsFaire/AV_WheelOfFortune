@@ -454,9 +454,7 @@
     const canvas = document.getElementById('wheelcanvas');
     const ctx = canvas.getContext('2d');
     
-    // Get modal reference early for spacebar check
-    const puzzleModal = document.getElementById('puzzle-modal');
-    const solveModal = document.getElementById('solve-modal');
+    // Modal references will be set later when DOM is ready
 
     // Size backing buffer to the canvas element's grid cell (NOT full window)
     function resizeCanvas(){
@@ -540,8 +538,11 @@
     // Only spacebar to spin (removed click functionality)
     addEventListener('keydown', e => {
       if (e.code === 'Space' || e.key === ' ') { 
-        // Don't spin if any modal is open
-        if (puzzleModal.style.display === 'flex' || solveModal.style.display === 'flex') {
+        // Don't spin if any modal is open (safe check)
+        const puzzleModal = document.getElementById('puzzle-modal');
+        const solveModal = document.getElementById('solve-modal');
+        if ((puzzleModal && puzzleModal.style.display === 'flex') || 
+            (solveModal && solveModal.style.display === 'flex')) {
           return; // Let spacebar work normally in the input fields
         }
         e.preventDefault(); 
