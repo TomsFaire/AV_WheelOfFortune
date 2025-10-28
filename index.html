@@ -59,6 +59,93 @@
     .fullscreen-btn:active {
       transform: scale(0.95);
     }
+    
+    /* Modal/Lightbox styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      background: linear-gradient(135deg, #f4e4bc, #e6d3a3);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      border: 3px solid #d4af37;
+    }
+    
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a0f0a;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .modal-input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 18px;
+      border: 2px solid #d4af37;
+      border-radius: 8px;
+      background: #F6EFE2;
+      color: #1a0f0a;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    
+    .modal-input:focus {
+      outline: none;
+      border-color: #b8860b;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .modal-btn {
+      padding: 12px 24px;
+      border: 2px solid #d4af37;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 100px;
+    }
+    
+    .modal-btn-primary {
+      background: #d4af37;
+      color: #1a0f0a;
+    }
+    
+    .modal-btn-primary:hover {
+      background: #b8860b;
+      transform: scale(1.05);
+    }
+    
+    .modal-btn-secondary {
+      background: transparent;
+      color: #1a0f0a;
+    }
+    
+    .modal-btn-secondary:hover {
+      background: rgba(212, 175, 55, 0.2);
+      transform: scale(1.05);
+    }
 
     .wheel-ct { position: relative; display: grid; place-items: center; }
     canvas#wheelcanvas { width: 100%; height: 100%; max-height: 100%; display: block; }
@@ -232,6 +319,18 @@
         <div class="status">Status: <b id="status">Ready — spin to begin</b></div>
         <div>letters guessed: <b id="count">0</b></div>
       </footer>
+    </div>
+  </div>
+  
+  <!-- Puzzle Editor Modal -->
+  <div class="modal-overlay" id="puzzle-modal">
+    <div class="modal-content">
+      <div class="modal-title">Edit Puzzle Phrase</div>
+      <input type="text" class="modal-input" id="puzzle-input" placeholder="Enter puzzle phrase..." maxlength="50">
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-primary" id="save-puzzle">Save</button>
+        <button class="modal-btn modal-btn-secondary" id="cancel-puzzle">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -559,26 +658,68 @@
       if (/^[A-Z]$/.test(k)) applyGuess(k);
     });
 
+     // Modal functionality
+     const puzzleModal = document.getElementById('puzzle-modal');
+     const puzzleInput = document.getElementById('puzzle-input');
+     const savePuzzleBtn = document.getElementById('save-puzzle');
+     const cancelPuzzleBtn = document.getElementById('cancel-puzzle');
+     
+     function showPuzzleModal() {
+       puzzleInput.value = puzzle;
+       puzzleModal.style.display = 'flex';
+       puzzleInput.focus();
+       puzzleInput.select();
+     }
+     
+     function hidePuzzleModal() {
+       puzzleModal.style.display = 'none';
+     }
+     
+     function savePuzzle() {
+       const val = puzzleInput.value.trim();
+       if (val) {
+         puzzle = val.toUpperCase().replace(/[^A-Z ]/g,'');
+         revealed.clear(); guessed.clear(); countEl.textContent='0';
+         layoutPhrase(); layoutAlpha();
+         setStatus('Puzzle set — spin to begin');
+         
+         // Hide instructions after puzzle is set
+         const hintEl = document.querySelector('.hint');
+         if (hintEl) {
+           hintEl.style.opacity = '0';
+           setTimeout(() => {
+             hintEl.style.display = 'none';
+           }, 500); // Wait for transition to complete
+         }
+       }
+       hidePuzzleModal();
+     }
+     
+     // Modal event listeners
+     savePuzzleBtn.addEventListener('click', savePuzzle);
+     cancelPuzzleBtn.addEventListener('click', hidePuzzleModal);
+     
+     // Close modal on overlay click
+     puzzleModal.addEventListener('click', (e) => {
+       if (e.target === puzzleModal) {
+         hidePuzzleModal();
+       }
+     });
+     
+     // Handle Enter key in modal
+     puzzleInput.addEventListener('keydown', (e) => {
+       if (e.key === 'Enter') {
+         savePuzzle();
+       } else if (e.key === 'Escape') {
+         hidePuzzleModal();
+       }
+     });
+     
      // Secret editor: Ctrl+Shift+P
      addEventListener('keydown', e=>{
        if (e.ctrlKey && e.shiftKey && (e.code==='KeyP' || e.key==='P')){
          e.preventDefault();
-         const val = prompt('Enter new puzzle phrase:', puzzle);
-         if (val && val.trim()){
-           puzzle = val.toUpperCase().replace(/[^A-Z ]/g,'');
-           revealed.clear(); guessed.clear(); countEl.textContent='0';
-           layoutPhrase(); layoutAlpha();
-           setStatus('Puzzle set — spin to begin');
-           
-           // Hide instructions after puzzle is set
-           const hintEl = document.querySelector('.hint');
-           if (hintEl) {
-             hintEl.style.opacity = '0';
-             setTimeout(() => {
-               hintEl.style.display = 'none';
-             }, 500); // Wait for transition to complete
-           }
-         }
+         showPuzzleModal();
        }
      });
      
