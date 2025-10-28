@@ -147,6 +147,36 @@
       transform: scale(1.05);
     }
     
+    /* Solve button styles */
+    .solve-btn {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      border: 2px solid #8b5cf6;
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: white;
+      font: 600 14px system-ui, sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      margin-top: 8px;
+    }
+    
+    .solve-btn:hover {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      transform: scale(1.05);
+    }
+    
+    .solve-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .solve-btn:disabled {
+      background: #6b7280;
+      border-color: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
     /* Alert/Notification styles */
     .alert-container {
       position: relative;
@@ -371,6 +401,9 @@
           
           <div class="phrase" id="phrase"></div>
           <div class="alert-container" id="alert-container"></div>
+          <div style="text-align: center;">
+            <button class="solve-btn" id="solve-btn" disabled>🎯 Solve Puzzle</button>
+          </div>
           <div class="alpha" id="alpha"></div>
           <div class="note" id="note" style="text-align:center; color:#94a3b8;"></div>
         </aside>
@@ -390,6 +423,18 @@
       <div class="modal-buttons">
         <button class="modal-btn modal-btn-primary" id="save-puzzle">Save</button>
         <button class="modal-btn modal-btn-secondary" id="cancel-puzzle">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Solve Puzzle Modal -->
+  <div class="modal-overlay" id="solve-modal">
+    <div class="modal-content">
+      <div class="modal-title">Solve the Puzzle</div>
+      <input type="text" class="modal-input" id="solve-input" placeholder="Enter your complete answer..." maxlength="50">
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-primary" id="check-solve">Check Answer</button>
+        <button class="modal-btn modal-btn-secondary" id="cancel-solve">Cancel</button>
       </div>
     </div>
   </div>
@@ -555,9 +600,11 @@
            } else if (selectedItem === 'FREE PLAY' || selectedItem === 'WILD' || selectedItem === 'MYSTERY') {
              awaitingGuess = true;
              setStatus('🎁 FREE PLAY! Guess any letter');
+             solveBtn.disabled = false; // Enable solve button
            } else if (currentWheelValue > 0) {
              awaitingGuess = true;
              setStatus(`💰 Landed on ${selectedItem}! Guess a letter`);
+             solveBtn.disabled = false; // Enable solve button
            } else {
              setStatus(`Landed on ${selectedItem} — spin again`);
            }
@@ -802,6 +849,7 @@
          revealed.clear(); guessed.clear(); countEl.textContent='0';
          layoutPhrase(); layoutAlpha();
          setStatus('Puzzle set — spin to begin');
+         solveBtn.disabled = true; // Disable solve button
          
          // Hide instructions after puzzle is set
          const hintEl = document.querySelector('.hint');
@@ -832,6 +880,71 @@
          savePuzzle();
        } else if (e.key === 'Escape') {
          hidePuzzleModal();
+       }
+     });
+     
+     // Solve functionality
+     const solveBtn = document.getElementById('solve-btn');
+     const solveModal = document.getElementById('solve-modal');
+     const solveInput = document.getElementById('solve-input');
+     const checkSolveBtn = document.getElementById('check-solve');
+     const cancelSolveBtn = document.getElementById('cancel-solve');
+     
+     function showSolveModal() {
+       solveInput.value = '';
+       solveModal.style.display = 'flex';
+       solveInput.focus();
+     }
+     
+     function hideSolveModal() {
+       solveModal.style.display = 'none';
+     }
+     
+     function checkSolve() {
+       const answer = solveInput.value.trim().toUpperCase().replace(/[^A-Z ]/g,'');
+       if (answer === puzzle) {
+         // Correct answer!
+         showAlert(`🎉 CORRECT! "${answer}" 🎉`, 'complete', 5000);
+         setStatus(`🎉 ${players[currentPlayer].name} solved it! "${answer}"`);
+         
+         // Reveal all letters
+         puzzle.split('').forEach(char => {
+           if (char !== ' ') {
+             revealed.add(char);
+           }
+         });
+         layoutPhrase();
+         
+         // Disable solve button
+         solveBtn.disabled = true;
+         awaitingGuess = false;
+       } else {
+         // Wrong answer
+         showAlert(`❌ Wrong answer: "${answer}"`, 'wrong');
+         setStatus(`❌ Wrong answer: "${answer}" — next player`);
+         nextPlayer();
+       }
+       hideSolveModal();
+     }
+     
+     // Solve modal event listeners
+     solveBtn.addEventListener('click', showSolveModal);
+     checkSolveBtn.addEventListener('click', checkSolve);
+     cancelSolveBtn.addEventListener('click', hideSolveModal);
+     
+     // Close solve modal on overlay click
+     solveModal.addEventListener('click', (e) => {
+       if (e.target === solveModal) {
+         hideSolveModal();
+       }
+     });
+     
+     // Handle Enter key in solve modal
+     solveInput.addEventListener('keydown', (e) => {
+       if (e.key === 'Enter') {
+         checkSolve();
+       } else if (e.key === 'Escape') {
+         hideSolveModal();
        }
      });
      
@@ -869,6 +982,7 @@
          layoutAlpha();
          setStatus('Scores reset — ready to begin');
          setNote('');
+         solveBtn.disabled = true; // Disable solve button
        }
      });
 
