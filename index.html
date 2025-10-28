@@ -146,6 +146,65 @@
       background: rgba(212, 175, 55, 0.2);
       transform: scale(1.05);
     }
+    
+    /* Alert/Notification styles */
+    .alert-container {
+      position: relative;
+      min-height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .alert {
+      position: absolute;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s ease-out;
+      z-index: 100;
+      max-width: 90%;
+      word-wrap: break-word;
+    }
+    
+    .alert.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .alert.correct {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: 3px solid #34d399;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .alert.wrong {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      border: 3px solid #f87171;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .alert.complete {
+      background: linear-gradient(135deg, #d4af37, #b8860b);
+      color: #1a0f0a;
+      border: 3px solid #fbbf24;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+      font-size: 24px;
+      animation: celebration 0.6s ease-out;
+    }
+    
+    @keyframes celebration {
+      0% { transform: scale(0.8) rotate(-5deg); }
+      50% { transform: scale(1.1) rotate(2deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
 
     .wheel-ct { position: relative; display: grid; place-items: center; }
     canvas#wheelcanvas { width: 100%; height: 100%; max-height: 100%; display: block; }
@@ -311,6 +370,7 @@
           </div>
           
           <div class="phrase" id="phrase"></div>
+          <div class="alert-container" id="alert-container"></div>
           <div class="alpha" id="alpha"></div>
           <div class="note" id="note" style="text-align:center; color:#94a3b8;"></div>
         </aside>
@@ -509,10 +569,38 @@
      const countEl  = document.getElementById('count');
      const noteEl   = document.getElementById('note');
      const wheelValueEl = document.getElementById('wheel-value');
+     const alertContainer = document.getElementById('alert-container');
 
      function setStatus(s){ statusEl.textContent = s; }
      function setNote(s){ noteEl.textContent = s; }
      function setWheelValue(value){ wheelValueEl.textContent = value; }
+     
+     // Alert system
+     function showAlert(message, type, duration = 3000) {
+       // Clear any existing alerts
+       alertContainer.innerHTML = '';
+       
+       const alert = document.createElement('div');
+       alert.className = `alert ${type}`;
+       alert.textContent = message;
+       
+       alertContainer.appendChild(alert);
+       
+       // Trigger animation
+       setTimeout(() => {
+         alert.classList.add('show');
+       }, 10);
+       
+       // Auto-hide after duration
+       setTimeout(() => {
+         alert.classList.remove('show');
+         setTimeout(() => {
+           if (alert.parentNode) {
+             alert.parentNode.removeChild(alert);
+           }
+         }, 300); // Wait for fade animation
+       }, duration);
+     }
 
      let puzzle   = 'FAIRE MARKET';
      let revealed = new Set();
@@ -654,12 +742,29 @@
          const points = currentWheelValue * hits;
          addPoints(points);
          
+         // Show success alert
+         showAlert(`✓ ${letter} found! (+${points} points)`, 'correct');
+         
          setStatus(`✔ ${letter} found (${hits}) — +${points} points — spin again`);
+         
+         // Check if puzzle is complete
+         if (isPuzzleSolved()) {
+           setTimeout(() => {
+             showAlert(`🎉 PUZZLE SOLVED! 🎉`, 'complete', 4000);
+           }, 1000);
+         }
        } else {
+         // Show wrong guess alert
+         showAlert(`✗ ${letter} not in phrase`, 'wrong');
+         
          setStatus(`✖ ${letter} not in phrase — next player`);
          nextPlayer();
        }
        awaitingGuess = false;
+     }
+     
+     function isPuzzleSolved() {
+       return puzzle.split('').every(char => char === ' ' || revealed.has(char));
      }
 
     // Type a letter on the keyboard
