@@ -59,6 +59,182 @@
     .fullscreen-btn:active {
       transform: scale(0.95);
     }
+    
+    /* Modal/Lightbox styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      background: linear-gradient(135deg, #f4e4bc, #e6d3a3);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      border: 3px solid #d4af37;
+    }
+    
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a0f0a;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .modal-input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 18px;
+      border: 2px solid #d4af37;
+      border-radius: 8px;
+      background: #F6EFE2;
+      color: #1a0f0a;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    
+    .modal-input:focus {
+      outline: none;
+      border-color: #b8860b;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .modal-btn {
+      padding: 12px 24px;
+      border: 2px solid #d4af37;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 100px;
+    }
+    
+    .modal-btn-primary {
+      background: #d4af37;
+      color: #1a0f0a;
+    }
+    
+    .modal-btn-primary:hover {
+      background: #b8860b;
+      transform: scale(1.05);
+    }
+    
+    .modal-btn-secondary {
+      background: transparent;
+      color: #1a0f0a;
+    }
+    
+    .modal-btn-secondary:hover {
+      background: rgba(212, 175, 55, 0.2);
+      transform: scale(1.05);
+    }
+    
+    /* Solve button styles */
+    .solve-btn {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      border: 2px solid #8b5cf6;
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: white;
+      font: 600 14px system-ui, sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      margin-top: 8px;
+    }
+    
+    .solve-btn:hover {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      transform: scale(1.05);
+    }
+    
+    .solve-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .solve-btn:disabled {
+      background: #6b7280;
+      border-color: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Alert/Notification styles */
+    .alert-container {
+      position: relative;
+      min-height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .alert {
+      position: absolute;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s ease-out;
+      z-index: 100;
+      max-width: 90%;
+      word-wrap: break-word;
+    }
+    
+    .alert.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .alert.correct {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: 3px solid #34d399;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .alert.wrong {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      border: 3px solid #f87171;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .alert.complete {
+      background: linear-gradient(135deg, #d4af37, #b8860b);
+      color: #1a0f0a;
+      border: 3px solid #fbbf24;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+      font-size: 24px;
+      animation: celebration 0.6s ease-out;
+    }
+    
+    @keyframes celebration {
+      0% { transform: scale(0.8) rotate(-5deg); }
+      50% { transform: scale(1.1) rotate(2deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
 
     .wheel-ct { position: relative; display: grid; place-items: center; }
     canvas#wheelcanvas { width: 100%; height: 100%; max-height: 100%; display: block; }
@@ -192,7 +368,7 @@
       <header>
         <div>Wheel of Fortune — Live</div>
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div class="hint">Spin (space). After it stops: type a letter. Toggle puzzle editor with <b>Ctrl+Shift+P</b>.</div>
+          <div class="hint">Spin (space). After it stops: type a letter. Toggle puzzle editor with <b>Ctrl+Shift+P</b>. Reset scores with <b>Ctrl+Shift+O</b>.</div>
           <button class="fullscreen-btn" id="fullscreen-btn">⛶ Fullscreen</button>
         </div>
       </header>
@@ -224,6 +400,10 @@
           </div>
           
           <div class="phrase" id="phrase"></div>
+          <div class="alert-container" id="alert-container"></div>
+          <div style="text-align: center;">
+            <button class="solve-btn" id="solve-btn" disabled>🎯 Solve Puzzle</button>
+          </div>
           <div class="alpha" id="alpha"></div>
           <div class="note" id="note" style="text-align:center; color:#94a3b8;"></div>
         </aside>
@@ -232,6 +412,30 @@
         <div class="status">Status: <b id="status">Ready — spin to begin</b></div>
         <div>letters guessed: <b id="count">0</b></div>
       </footer>
+    </div>
+  </div>
+  
+  <!-- Puzzle Editor Modal -->
+  <div class="modal-overlay" id="puzzle-modal">
+    <div class="modal-content">
+      <div class="modal-title">Edit Puzzle Phrase</div>
+      <input type="text" class="modal-input" id="puzzle-input" placeholder="Enter puzzle phrase..." maxlength="50">
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-primary" id="save-puzzle">Save</button>
+        <button class="modal-btn modal-btn-secondary" id="cancel-puzzle">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Solve Puzzle Modal -->
+  <div class="modal-overlay" id="solve-modal">
+    <div class="modal-content">
+      <div class="modal-title">Solve the Puzzle</div>
+      <input type="text" class="modal-input" id="solve-input" placeholder="Enter your complete answer..." maxlength="50">
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-primary" id="check-solve">Check Answer</button>
+        <button class="modal-btn modal-btn-secondary" id="cancel-solve">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -249,6 +453,8 @@
 
     const canvas = document.getElementById('wheelcanvas');
     const ctx = canvas.getContext('2d');
+    
+    // Modal references will be set later when DOM is ready
 
     // Size backing buffer to the canvas element's grid cell (NOT full window)
     function resizeCanvas(){
@@ -331,7 +537,17 @@
     
     // Only spacebar to spin (removed click functionality)
     addEventListener('keydown', e => {
-      if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); requestSpin(); }
+      if (e.code === 'Space' || e.key === ' ') { 
+        // Don't spin if any modal is open (safe check)
+        const puzzleModal = document.getElementById('puzzle-modal');
+        const solveModal = document.getElementById('solve-modal');
+        if ((puzzleModal && puzzleModal.style.display === 'flex') || 
+            (solveModal && solveModal.style.display === 'flex')) {
+          return; // Let spacebar work normally in the input fields
+        }
+        e.preventDefault(); 
+        requestSpin(); 
+      }
     });
 
     let last = 0;
@@ -343,14 +559,20 @@
         angle += SPIN_SPEED * dt;
         if (ts >= spinEnd){
           phase = 'decel';
-          // compute a single final target to interpolate to (no snap-back)
+          // Randomly select a slice for the final result
           const start = angle;
-          const remaining = SPIN_SPEED * ((DECEL_MS/1000) / 4); // integral of (1-t)^3
-          const provisional = start + remaining;
+          const randomSlice = Math.floor(Math.random() * ITEMS.length);
           const stepAng = TAU / ITEMS.length;
-          const idxFinal = currentIndex(provisional + 1e-6);
-          let target = pointerAngle - (idxFinal + 0.5) * stepAng;
-          while (target <= start) target += TAU; // ensure monotonic forward motion
+          
+          // Calculate target angle to land on the randomly selected slice
+          // Add multiple full rotations for dramatic effect
+          const extraRotations = 3 + Math.random() * 2; // 3-5 extra rotations
+          let target = pointerAngle - (randomSlice + 0.5) * stepAng;
+          target += extraRotations * TAU; // Add extra rotations
+          
+          // Ensure monotonic forward motion
+          while (target <= start) target += TAU;
+          
           decelStartAngle = start;
           decelTargetAngle = target;
         }
@@ -380,9 +602,13 @@
            } else if (selectedItem === 'FREE PLAY' || selectedItem === 'WILD' || selectedItem === 'MYSTERY') {
              awaitingGuess = true;
              setStatus('🎁 FREE PLAY! Guess any letter');
+             const solveBtn = document.getElementById('solve-btn');
+             if (solveBtn) solveBtn.disabled = false; // Enable solve button
            } else if (currentWheelValue > 0) {
              awaitingGuess = true;
              setStatus(`💰 Landed on ${selectedItem}! Guess a letter`);
+             const solveBtn = document.getElementById('solve-btn');
+             if (solveBtn) solveBtn.disabled = false; // Enable solve button
            } else {
              setStatus(`Landed on ${selectedItem} — spin again`);
            }
@@ -400,10 +626,38 @@
      const countEl  = document.getElementById('count');
      const noteEl   = document.getElementById('note');
      const wheelValueEl = document.getElementById('wheel-value');
+     const alertContainer = document.getElementById('alert-container');
 
      function setStatus(s){ statusEl.textContent = s; }
      function setNote(s){ noteEl.textContent = s; }
      function setWheelValue(value){ wheelValueEl.textContent = value; }
+     
+     // Alert system
+     function showAlert(message, type, duration = 3000) {
+       // Clear any existing alerts
+       alertContainer.innerHTML = '';
+       
+       const alert = document.createElement('div');
+       alert.className = `alert ${type}`;
+       alert.textContent = message;
+       
+       alertContainer.appendChild(alert);
+       
+       // Trigger animation
+       setTimeout(() => {
+         alert.classList.add('show');
+       }, 10);
+       
+       // Auto-hide after duration
+       setTimeout(() => {
+         alert.classList.remove('show');
+         setTimeout(() => {
+           if (alert.parentNode) {
+             alert.parentNode.removeChild(alert);
+           }
+         }, 300); // Wait for fade animation
+       }, duration);
+     }
 
      let puzzle   = 'FAIRE MARKET';
      let revealed = new Set();
@@ -545,12 +799,29 @@
          const points = currentWheelValue * hits;
          addPoints(points);
          
+         // Show success alert
+         showAlert(`✓ ${letter} found! (+${points} points)`, 'correct');
+         
          setStatus(`✔ ${letter} found (${hits}) — +${points} points — spin again`);
+         
+         // Check if puzzle is complete
+         if (isPuzzleSolved()) {
+           setTimeout(() => {
+             showAlert(`🎉 PUZZLE SOLVED! 🎉`, 'complete', 4000);
+           }, 1000);
+         }
        } else {
+         // Show wrong guess alert
+         showAlert(`✗ ${letter} not in phrase`, 'wrong');
+         
          setStatus(`✖ ${letter} not in phrase — next player`);
          nextPlayer();
        }
        awaitingGuess = false;
+     }
+     
+     function isPuzzleSolved() {
+       return puzzle.split('').every(char => char === ' ' || revealed.has(char));
      }
 
     // Type a letter on the keyboard
@@ -559,26 +830,177 @@
       if (/^[A-Z]$/.test(k)) applyGuess(k);
     });
 
+     // Modal functionality
+     const puzzleInput = document.getElementById('puzzle-input');
+     const savePuzzleBtn = document.getElementById('save-puzzle');
+     const cancelPuzzleBtn = document.getElementById('cancel-puzzle');
+     
+     function showPuzzleModal() {
+       puzzleInput.value = puzzle;
+       puzzleModal.style.display = 'flex';
+       puzzleInput.focus();
+       puzzleInput.select();
+     }
+     
+     function hidePuzzleModal() {
+       puzzleModal.style.display = 'none';
+     }
+     
+     function savePuzzle() {
+       const val = puzzleInput.value.trim();
+       if (val) {
+         puzzle = val.toUpperCase().replace(/[^A-Z ]/g,'');
+         revealed.clear(); guessed.clear(); countEl.textContent='0';
+         layoutPhrase(); layoutAlpha();
+         setStatus('Puzzle set — spin to begin');
+         const solveBtn = document.getElementById('solve-btn');
+         if (solveBtn) solveBtn.disabled = true; // Disable solve button
+         
+         // Hide instructions after puzzle is set
+         const hintEl = document.querySelector('.hint');
+         if (hintEl) {
+           hintEl.style.opacity = '0';
+           setTimeout(() => {
+             hintEl.style.display = 'none';
+           }, 500); // Wait for transition to complete
+         }
+       }
+       hidePuzzleModal();
+     }
+     
+     // Modal event listeners
+     savePuzzleBtn.addEventListener('click', savePuzzle);
+     cancelPuzzleBtn.addEventListener('click', hidePuzzleModal);
+     
+     // Close modal on overlay click
+     puzzleModal.addEventListener('click', (e) => {
+       if (e.target === puzzleModal) {
+         hidePuzzleModal();
+       }
+     });
+     
+     // Handle Enter key in modal
+     puzzleInput.addEventListener('keydown', (e) => {
+       if (e.key === 'Enter') {
+         savePuzzle();
+       } else if (e.key === 'Escape') {
+         hidePuzzleModal();
+       }
+     });
+     
+     // Solve functionality
+     const solveBtn = document.getElementById('solve-btn');
+     const solveModal = document.getElementById('solve-modal');
+     const solveInput = document.getElementById('solve-input');
+     const checkSolveBtn = document.getElementById('check-solve');
+     const cancelSolveBtn = document.getElementById('cancel-solve');
+     
+     // Check if solve elements exist before proceeding
+     if (!solveBtn || !solveModal || !solveInput || !checkSolveBtn || !cancelSolveBtn) {
+       console.error('Solve modal elements not found');
+     }
+     
+     function showSolveModal() {
+       if (!solveInput || !solveModal) return;
+       solveInput.value = '';
+       solveModal.style.display = 'flex';
+       solveInput.focus();
+     }
+     
+     function hideSolveModal() {
+       if (!solveModal) return;
+       solveModal.style.display = 'none';
+     }
+     
+     function checkSolve() {
+       if (!solveInput) return;
+       const answer = solveInput.value.trim().toUpperCase().replace(/[^A-Z ]/g,'');
+       if (answer === puzzle) {
+         // Correct answer!
+         showAlert(`🎉 CORRECT! "${answer}" 🎉`, 'complete', 5000);
+         setStatus(`🎉 ${players[currentPlayer].name} solved it! "${answer}"`);
+         
+         // Reveal all letters
+         puzzle.split('').forEach(char => {
+           if (char !== ' ') {
+             revealed.add(char);
+           }
+         });
+         layoutPhrase();
+         
+         // Disable solve button
+         if (solveBtn) solveBtn.disabled = true;
+         awaitingGuess = false;
+       } else {
+         // Wrong answer
+         showAlert(`❌ Wrong answer: "${answer}"`, 'wrong');
+         setStatus(`❌ Wrong answer: "${answer}" — next player`);
+         nextPlayer();
+       }
+       hideSolveModal();
+     }
+     
+     // Solve modal event listeners (only if elements exist)
+     if (solveBtn) solveBtn.addEventListener('click', showSolveModal);
+     if (checkSolveBtn) checkSolveBtn.addEventListener('click', checkSolve);
+     if (cancelSolveBtn) cancelSolveBtn.addEventListener('click', hideSolveModal);
+     
+     // Close solve modal on overlay click
+     if (solveModal) {
+       solveModal.addEventListener('click', (e) => {
+         if (e.target === solveModal) {
+           hideSolveModal();
+         }
+       });
+     }
+     
+     // Handle Enter key in solve modal
+     if (solveInput) {
+       solveInput.addEventListener('keydown', (e) => {
+         if (e.key === 'Enter') {
+           checkSolve();
+         } else if (e.key === 'Escape') {
+           hideSolveModal();
+         }
+       });
+     }
+     
      // Secret editor: Ctrl+Shift+P
      addEventListener('keydown', e=>{
        if (e.ctrlKey && e.shiftKey && (e.code==='KeyP' || e.key==='P')){
          e.preventDefault();
-         const val = prompt('Enter new puzzle phrase:', puzzle);
-         if (val && val.trim()){
-           puzzle = val.toUpperCase().replace(/[^A-Z ]/g,'');
-           revealed.clear(); guessed.clear(); countEl.textContent='0';
-           layoutPhrase(); layoutAlpha();
-           setStatus('Puzzle set — spin to begin');
-           
-           // Hide instructions after puzzle is set
-           const hintEl = document.querySelector('.hint');
-           if (hintEl) {
-             hintEl.style.opacity = '0';
-             setTimeout(() => {
-               hintEl.style.display = 'none';
-             }, 500); // Wait for transition to complete
-           }
-         }
+         showPuzzleModal();
+       }
+     });
+     
+     // Reset scores: Ctrl+Shift+O
+     addEventListener('keydown', e=>{
+       if (e.ctrlKey && e.shiftKey && (e.code==='KeyO' || e.key==='O')){
+         e.preventDefault();
+         // Reset all player scores to 0
+         players.forEach(player => {
+           player.points = 0;
+         });
+         // Reset current player to Player 1
+         players.forEach((player, index) => {
+           player.active = (index === 0);
+         });
+         currentPlayer = 0;
+         // Reset game state
+         revealed.clear(); 
+         guessed.clear(); 
+         countEl.textContent = '0';
+         awaitingGuess = false;
+         currentWheelValue = 0;
+         setWheelValue('—');
+         // Update display
+         updatePlayerScores();
+         layoutPhrase(); 
+         layoutAlpha();
+         setStatus('Scores reset — ready to begin');
+         setNote('');
+         const solveBtn = document.getElementById('solve-btn');
+         if (solveBtn) solveBtn.disabled = true; // Disable solve button
        }
      });
 
@@ -603,11 +1025,13 @@
      document.addEventListener('fullscreenchange', () => {
        if (document.fullscreenElement) {
          fullscreenBtn.textContent = '⛶ Exit Fullscreen';
-         // Hide cursor in fullscreen
+         // Hide cursor in fullscreen - use more specific targeting
+         document.documentElement.style.cursor = 'none';
          document.body.style.cursor = 'none';
        } else {
          fullscreenBtn.textContent = '⛶ Fullscreen';
          // Show cursor when exiting fullscreen
+         document.documentElement.style.cursor = 'default';
          document.body.style.cursor = 'default';
        }
      });
@@ -616,10 +1040,12 @@
      let cursorTimeout;
      document.addEventListener('mousemove', () => {
        if (document.fullscreenElement) {
+         document.documentElement.style.cursor = 'default';
          document.body.style.cursor = 'default';
          clearTimeout(cursorTimeout);
          cursorTimeout = setTimeout(() => {
            if (document.fullscreenElement) {
+             document.documentElement.style.cursor = 'none';
              document.body.style.cursor = 'none';
            }
          }, 2000); // Hide cursor after 2 seconds of no movement
