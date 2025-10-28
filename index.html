@@ -599,12 +599,30 @@
      
      fullscreenBtn.addEventListener('click', toggleFullscreen);
      
-     // Update button text when fullscreen state changes
+     // Update button text and cursor visibility when fullscreen state changes
      document.addEventListener('fullscreenchange', () => {
        if (document.fullscreenElement) {
          fullscreenBtn.textContent = '⛶ Exit Fullscreen';
+         // Hide cursor in fullscreen
+         document.body.style.cursor = 'none';
        } else {
          fullscreenBtn.textContent = '⛶ Fullscreen';
+         // Show cursor when exiting fullscreen
+         document.body.style.cursor = 'default';
+       }
+     });
+     
+     // Show cursor temporarily on mouse movement in fullscreen
+     let cursorTimeout;
+     document.addEventListener('mousemove', () => {
+       if (document.fullscreenElement) {
+         document.body.style.cursor = 'default';
+         clearTimeout(cursorTimeout);
+         cursorTimeout = setTimeout(() => {
+           if (document.fullscreenElement) {
+             document.body.style.cursor = 'none';
+           }
+         }, 2000); // Hide cursor after 2 seconds of no movement
        }
      });
 
