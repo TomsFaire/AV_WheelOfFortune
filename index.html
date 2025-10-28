@@ -192,7 +192,7 @@
       <header>
         <div>Wheel of Fortune — Live</div>
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div class="hint">Spin (space). After it stops: type a letter. Toggle puzzle editor with <b>Ctrl+Shift+P</b>.</div>
+          <div class="hint">Spin (space). After it stops: type a letter. Toggle puzzle editor with <b>Ctrl+Shift+P</b>. Reset scores with <b>Ctrl+Shift+O</b>.</div>
           <button class="fullscreen-btn" id="fullscreen-btn">⛶ Fullscreen</button>
         </div>
       </header>
@@ -581,6 +581,35 @@
          }
        }
      });
+     
+     // Reset scores: Ctrl+Shift+O
+     addEventListener('keydown', e=>{
+       if (e.ctrlKey && e.shiftKey && (e.code==='KeyO' || e.key==='O')){
+         e.preventDefault();
+         // Reset all player scores to 0
+         players.forEach(player => {
+           player.points = 0;
+         });
+         // Reset current player to Player 1
+         players.forEach((player, index) => {
+           player.active = (index === 0);
+         });
+         currentPlayer = 0;
+         // Reset game state
+         revealed.clear(); 
+         guessed.clear(); 
+         countEl.textContent = '0';
+         awaitingGuess = false;
+         currentWheelValue = 0;
+         setWheelValue('—');
+         // Update display
+         updatePlayerScores();
+         layoutPhrase(); 
+         layoutAlpha();
+         setStatus('Scores reset — ready to begin');
+         setNote('');
+       }
+     });
 
      // Fullscreen functionality
      const fullscreenBtn = document.getElementById('fullscreen-btn');
@@ -603,11 +632,13 @@
      document.addEventListener('fullscreenchange', () => {
        if (document.fullscreenElement) {
          fullscreenBtn.textContent = '⛶ Exit Fullscreen';
-         // Hide cursor in fullscreen
+         // Hide cursor in fullscreen - use more specific targeting
+         document.documentElement.style.cursor = 'none';
          document.body.style.cursor = 'none';
        } else {
          fullscreenBtn.textContent = '⛶ Fullscreen';
          // Show cursor when exiting fullscreen
+         document.documentElement.style.cursor = 'default';
          document.body.style.cursor = 'default';
        }
      });
@@ -616,10 +647,12 @@
      let cursorTimeout;
      document.addEventListener('mousemove', () => {
        if (document.fullscreenElement) {
+         document.documentElement.style.cursor = 'default';
          document.body.style.cursor = 'default';
          clearTimeout(cursorTimeout);
          cursorTimeout = setTimeout(() => {
            if (document.fullscreenElement) {
+             document.documentElement.style.cursor = 'none';
              document.body.style.cursor = 'none';
            }
          }, 2000); // Hide cursor after 2 seconds of no movement
