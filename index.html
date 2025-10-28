@@ -602,11 +602,13 @@
            } else if (selectedItem === 'FREE PLAY' || selectedItem === 'WILD' || selectedItem === 'MYSTERY') {
              awaitingGuess = true;
              setStatus('🎁 FREE PLAY! Guess any letter');
-             solveBtn.disabled = false; // Enable solve button
+             const solveBtn = document.getElementById('solve-btn');
+             if (solveBtn) solveBtn.disabled = false; // Enable solve button
            } else if (currentWheelValue > 0) {
              awaitingGuess = true;
              setStatus(`💰 Landed on ${selectedItem}! Guess a letter`);
-             solveBtn.disabled = false; // Enable solve button
+             const solveBtn = document.getElementById('solve-btn');
+             if (solveBtn) solveBtn.disabled = false; // Enable solve button
            } else {
              setStatus(`Landed on ${selectedItem} — spin again`);
            }
@@ -851,7 +853,8 @@
          revealed.clear(); guessed.clear(); countEl.textContent='0';
          layoutPhrase(); layoutAlpha();
          setStatus('Puzzle set — spin to begin');
-         solveBtn.disabled = true; // Disable solve button
+         const solveBtn = document.getElementById('solve-btn');
+         if (solveBtn) solveBtn.disabled = true; // Disable solve button
          
          // Hide instructions after puzzle is set
          const hintEl = document.querySelector('.hint');
@@ -892,17 +895,25 @@
      const checkSolveBtn = document.getElementById('check-solve');
      const cancelSolveBtn = document.getElementById('cancel-solve');
      
+     // Check if solve elements exist before proceeding
+     if (!solveBtn || !solveModal || !solveInput || !checkSolveBtn || !cancelSolveBtn) {
+       console.error('Solve modal elements not found');
+     }
+     
      function showSolveModal() {
+       if (!solveInput || !solveModal) return;
        solveInput.value = '';
        solveModal.style.display = 'flex';
        solveInput.focus();
      }
      
      function hideSolveModal() {
+       if (!solveModal) return;
        solveModal.style.display = 'none';
      }
      
      function checkSolve() {
+       if (!solveInput) return;
        const answer = solveInput.value.trim().toUpperCase().replace(/[^A-Z ]/g,'');
        if (answer === puzzle) {
          // Correct answer!
@@ -918,7 +929,7 @@
          layoutPhrase();
          
          // Disable solve button
-         solveBtn.disabled = true;
+         if (solveBtn) solveBtn.disabled = true;
          awaitingGuess = false;
        } else {
          // Wrong answer
@@ -929,26 +940,30 @@
        hideSolveModal();
      }
      
-     // Solve modal event listeners
-     solveBtn.addEventListener('click', showSolveModal);
-     checkSolveBtn.addEventListener('click', checkSolve);
-     cancelSolveBtn.addEventListener('click', hideSolveModal);
+     // Solve modal event listeners (only if elements exist)
+     if (solveBtn) solveBtn.addEventListener('click', showSolveModal);
+     if (checkSolveBtn) checkSolveBtn.addEventListener('click', checkSolve);
+     if (cancelSolveBtn) cancelSolveBtn.addEventListener('click', hideSolveModal);
      
      // Close solve modal on overlay click
-     solveModal.addEventListener('click', (e) => {
-       if (e.target === solveModal) {
-         hideSolveModal();
-       }
-     });
+     if (solveModal) {
+       solveModal.addEventListener('click', (e) => {
+         if (e.target === solveModal) {
+           hideSolveModal();
+         }
+       });
+     }
      
      // Handle Enter key in solve modal
-     solveInput.addEventListener('keydown', (e) => {
-       if (e.key === 'Enter') {
-         checkSolve();
-       } else if (e.key === 'Escape') {
-         hideSolveModal();
-       }
-     });
+     if (solveInput) {
+       solveInput.addEventListener('keydown', (e) => {
+         if (e.key === 'Enter') {
+           checkSolve();
+         } else if (e.key === 'Escape') {
+           hideSolveModal();
+         }
+       });
+     }
      
      // Secret editor: Ctrl+Shift+P
      addEventListener('keydown', e=>{
@@ -984,7 +999,8 @@
          layoutAlpha();
          setStatus('Scores reset — ready to begin');
          setNote('');
-         solveBtn.disabled = true; // Disable solve button
+         const solveBtn = document.getElementById('solve-btn');
+         if (solveBtn) solveBtn.disabled = true; // Disable solve button
        }
      });
 
