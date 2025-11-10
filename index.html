@@ -617,7 +617,6 @@
       }
       requestAnimationFrame(step);
     }
-    requestAnimationFrame(step);
 
      // ---------- Puzzle / letters ----------
      const phraseEl = document.getElementById('phrase');
@@ -683,10 +682,18 @@
       let currentRow = [];
       let currentRowLength = 0;
       
-      // Calculate approximate tile width (including gap)
-      const tileWidth = 52 + 6; // tile width + gap
-      const spaceWidth = 22 + 6; // space width + gap
-      const maxRowWidth = phraseEl.offsetWidth || 400; // fallback width
+      // Get the actual container width and calculate tile sizes dynamically
+      const containerWidth = phraseEl.offsetWidth || phraseEl.clientWidth || 500; // fallback width
+      const viewportWidth = window.innerWidth;
+      
+      // Calculate tile width based on actual CSS min() calculation
+      const tileWidthPx = Math.min(52, viewportWidth * 0.04);
+      const spaceWidthPx = Math.min(22, viewportWidth * 0.02);
+      const gap = 6;
+      
+      const tileWidth = tileWidthPx + gap;
+      const spaceWidth = spaceWidthPx + gap;
+      const maxRowWidth = containerWidth - 20; // Leave some padding
       
       words.forEach((word, wordIndex) => {
         const wordLength = word.length * tileWidth;
@@ -831,6 +838,7 @@
     });
 
      // Modal functionality
+     const puzzleModal = document.getElementById('puzzle-modal');
      const puzzleInput = document.getElementById('puzzle-input');
      const savePuzzleBtn = document.getElementById('save-puzzle');
      const cancelPuzzleBtn = document.getElementById('cancel-puzzle');
@@ -1052,11 +1060,15 @@
        }
      });
 
-     // Init
-     layoutPhrase(); layoutAlpha();
-     updatePlayerScores();
-     resizeCanvas(); draw();
-    requestAnimationFrame(step);
+     // Init - wait for DOM to be fully loaded and laid out
+     window.addEventListener('load', () => {
+       layoutPhrase(); 
+       layoutAlpha();
+       updatePlayerScores();
+       resizeCanvas(); 
+       draw();
+       requestAnimationFrame(step);
+     });
   </script>
 </body>
 </html>
